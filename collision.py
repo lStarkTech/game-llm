@@ -1,3 +1,6 @@
+
+
+
 def handle_collision(player_rect, dx, dy, collision_rects):
     """Restituisce una posizione corretta per il player dopo la collisione."""
     # Sposta orizzontalmente

@@ -3,30 +3,34 @@ import collision as Collision
 from character import Character
 
 FRAME_WIDTH = 32
-FRAME_HEIGHT = 48
+FRAME_HEIGHT = 36
 ANIM_DELAY = 150  # millisecondi
-COLLISION_HEIGHT = 17
-COLLISION_WIDTH = 15
+COLLISION_HEIGHT = 20
+COLLISION_WIDTH = 17
 COLLISION_OFFSET_Y = 10
+COLLISION_OFFSET_X = 5
 
 
 
 class Player(Character) :
-    def __init__(self, x, y):
+    def __init__(self, x, y, scale):
+        super().__init__(frame_width = 32, frame_height = 36)
         # Carica frame
         self.animations = {
-            "idle": self.load_animation("assets/player/B_witch_idle.png", FRAME_WIDTH, FRAME_HEIGHT),
-            "run": self.load_animation("assets/player/B_witch_run.png", FRAME_WIDTH, FRAME_HEIGHT),
+            "idle": self.load_animation(path = "assets/player/player_idle.png", scale=scale),
+            "run": self.load_animation(path ="assets/player/player_run.png", scale=scale),
         }
         self.state = "idle"
-        self.speed = 3
+        self.speed = 2.5*scale
         self.facing_right = True
         self.frame_index = 0
         self.image = self.animations[self.state][0]
+        
         self.rect = pygame.Rect(0, 0, COLLISION_WIDTH, COLLISION_HEIGHT)
-        self.rect.center = (x, y + COLLISION_OFFSET_Y)  # applichi l'offset solo una volta qui
+        self.rect.center = (x+COLLISION_OFFSET_X, y + COLLISION_OFFSET_Y)  # applichi l'offset solo una volta qui
         self.visual_rect = self.image.get_rect(center=(x, y))
         self.last_update = pygame.time.get_ticks()
+
 
 
     def update(self, keys, colliders):
@@ -43,6 +47,7 @@ class Player(Character) :
                 dy -= self.speed
             if keys[pygame.K_s]:
                 dy += self.speed
+            
             self.rect = Collision.handle_collision(self.rect, dx, dy, colliders)
             self.visual_rect.center = (self.rect.centerx, self.rect.centery - COLLISION_OFFSET_Y)
 
@@ -56,13 +61,20 @@ class Player(Character) :
             self.image = self.animations[self.state][self.frame_index]
             self.last_update = now
 
-    def draw(self, camera, surface):
-        
+    def draw(self, camera, surface, scale):
+        if scale != 1:
+            self.image =  pygame.transform.scale(self.image, (self.frame_width*scale, 
+                                                              self.frame_height*scale))
+
         if self.facing_right:
             
-            surface.blit(self.image, camera.apply(self.visual_rect))
+            surface.blit(self.image, camera.apply(self.visual_rect, scale))
         else:
             flipped_image = pygame.transform.flip(self.image, True, False)
-            surface.blit(flipped_image, camera.apply(self.visual_rect))
-        debug_rect = camera.apply(self.rect)
+            surface.blit(flipped_image, camera.apply(self.visual_rect, scale))
+        debug_rect = camera.apply(self.rect, scale)
         pygame.draw.rect(surface, (255,0,0), debug_rect, 2)
+
+    def allise(self, scale_fatctor, x, y):
+        self.rect = pygame.Rect(0, 0, COLLISION_WIDTH*scale_fatctor, COLLISION_HEIGHT*scale_fatctor)
+        self.visual_rect = self.image.get_rect(center=(x, y))
