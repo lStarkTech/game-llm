@@ -17,8 +17,8 @@ class Player(Character) :
         super().__init__(frame_width = 32, frame_height = 36)
         # Carica frame
         self.animations = {
-            "idle": self.load_animation(path = "assets/player/player_idle.png", scale=scale),
-            "run": self.load_animation(path ="assets/player/player_run.png", scale=scale),
+            "idle": self.load_animation(path = "./assets/player/player_idle.png", scale=scale),
+            "run": self.load_animation(path ="./assets/player/player_run.png", scale=scale),
         }
         self.state = "idle"
         self.speed = 2.5*scale

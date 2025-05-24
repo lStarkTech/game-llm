@@ -5,7 +5,7 @@ class LLM(Character):
 
     def __init__(self, x, y):
         super().__init__()
-        self.sprite = self.load_sprite("assets/npcs/llm3.png")
+        self.sprite = self.load_sprite("./assets/npcs/llm3.png")
         #self.sprite = py.transform.scale(self.sprite, (36, 36))
         self.rect = self.sprite.get_rect(center=(x,y))
         self.facing_right = False

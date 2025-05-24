@@ -100,7 +100,7 @@ class TileMap:
             if collision:
                 print(f"COLLISIONE AVVENUTA! sulla porta che fa accedere alla mappa {door_out} dalla mappa {door_in}")
                 #carica la mappa successiva
-                map_path = Path(f"maps/Mappa_{door_out}.tmx")
+                map_path = Path(f"./maps/Mappa_{door_out}.tmx")
                 if (map_path.exists() == False):
                     print(f"la mappa {door_out} non esiste")
                     return self, player

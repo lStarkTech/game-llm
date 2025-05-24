@@ -14,7 +14,7 @@ pygame.display.set_caption("Game title")
 clock = pygame.time.Clock()
 door_timer = Timer(30) #timer per il cambio di mappa
 #carica la mappa iniziale
-tilemap = TileMap("maps/Mappa_0.tmx")
+tilemap = TileMap("./maps/Mappa_0.tmx")
 #definisce il giocatore e la sua posizione all'interno della mappa (centro dello schermo)
 player_x,player_y = tilemap.get_player_start(0,0)
 camera = Camera(screen.get_size(), (tilemap.width, tilemap.height))
