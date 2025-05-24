@@ -27,12 +27,13 @@ class Player(Character) :
         self.image = self.animations[self.state][0]
         
         self.rect = pygame.Rect(0, 0, COLLISION_WIDTH, COLLISION_HEIGHT)
-        self.rect.center = (x+COLLISION_OFFSET_X, y + COLLISION_OFFSET_Y)  # applichi l'offset solo una volta qui
+        self.rect.center = (x, y + COLLISION_OFFSET_Y)  # applichi l'offset solo una volta qui
         self.visual_rect = self.image.get_rect(center=(x, y))
         self.last_update = pygame.time.get_ticks()
 
 
-
+    #aggiorna la posizione del giocatore in base ai tasti premuti, verrà poi sostituita
+    #con quello che deciderà la llm in base al prompt
     def update(self, keys, colliders):
         dx = dy = 0
         if keys[pygame.K_a] or keys[pygame.K_d] or keys[pygame.K_w] or keys[pygame.K_s]:
@@ -47,11 +48,11 @@ class Player(Character) :
                 dy -= self.speed
             if keys[pygame.K_s]:
                 dy += self.speed
-            
+            #tiene conto delle collisioni
             self.rect = Collision.handle_collision(self.rect, dx, dy, colliders)
             self.visual_rect.center = (self.rect.centerx, self.rect.centery - COLLISION_OFFSET_Y)
 
-
+        #controlla di aggiornare le animazioni di idle e run
         else:
             self.state = "idle"
     
@@ -61,20 +62,19 @@ class Player(Character) :
             self.image = self.animations[self.state][self.frame_index]
             self.last_update = now
 
-    def draw(self, camera, surface, scale):
+    #disgna a schermo il giocaatore in base alla posizione, alla telecamera e in base
+    #alla direzione in cui sta guardando
+    def draw(self, camera, surface, tilemap):
+        scale = tilemap.get_scale()
         if scale != 1:
             self.image =  pygame.transform.scale(self.image, (self.frame_width*scale, 
                                                               self.frame_height*scale))
 
         if self.facing_right:
             
-            surface.blit(self.image, camera.apply(self.visual_rect, scale))
+            surface.blit(self.image, camera.apply(self.visual_rect, tilemap))
         else:
             flipped_image = pygame.transform.flip(self.image, True, False)
-            surface.blit(flipped_image, camera.apply(self.visual_rect, scale))
-        debug_rect = camera.apply(self.rect, scale)
-        pygame.draw.rect(surface, (255,0,0), debug_rect, 2)
-
-    def allise(self, scale_fatctor, x, y):
-        self.rect = pygame.Rect(0, 0, COLLISION_WIDTH*scale_fatctor, COLLISION_HEIGHT*scale_fatctor)
-        self.visual_rect = self.image.get_rect(center=(x, y))
+            surface.blit(flipped_image, camera.apply(self.visual_rect, tilemap))
+        #debug_rect = camera.apply(self.rect, tilemap)
+        #pygame.draw.rect(surface, (255,0,0), debug_rect, 2)

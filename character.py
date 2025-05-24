@@ -21,13 +21,13 @@ class Character:
 
     @classmethod
     #per definirla qui dentro devo modificarla
-    def draw(self, camera, surface, scale):
+    def draw(self, camera, surface, tilemap):
         
         if self.facing_right:
             
-            surface.blit(self.image, camera.apply(self.visual_rect, scale))
+            surface.blit(self.image, camera.apply(self.visual_rect, tilemap))
         else:
             flipped_image = pygame.transform.flip(self.image, True, False)
-            surface.blit(flipped_image, camera.apply(self.visual_rect))
-        debug_rect = camera.apply(self.rect)
+            surface.blit(flipped_image, camera.apply(self.visual_rect, tilemap))
+        debug_rect = camera.apply(self.rect, tilemap)
         pygame.draw.rect(surface, (255,0,0), debug_rect, 2)

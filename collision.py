@@ -22,3 +22,4 @@ def handle_collision(player_rect, dx, dy, collision_rects):
                 player_rect.top = rect.bottom
 
     return player_rect
+        
