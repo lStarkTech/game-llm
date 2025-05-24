@@ -3,12 +3,12 @@ A really small project used for my bachelor thesis to test the strength of small
 Up till now the movement is set by me for testing the collisions and stuff.
 The project is made using python and pygame-ce library, free assets from itch.io and other sites and Tiled to construct
 the maps and create object collisions.
-Things done:\n 
--Collisions\n
--player's animations loading\n
--maps loading\n
+Things done:  
+-Collisions  
+-player's animations loading  
+-maps loading  
 
-Things to do:
--at least one more map for now
--llm integration and dialogues
--get good collisions when scaling the window
+Things to do:  
+-at least one more map for now  
+-llm integration and dialogues  
+-get good collisions when scaling the window  
