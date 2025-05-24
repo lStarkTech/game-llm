@@ -4,7 +4,7 @@
  <tileset firstgid="289" name="DARK Edition Tileset with background" tilewidth="16" tileheight="16" tilecount="288" columns="18">
   <image source="Tileset/DARK Edition Tileset with background.png" width="288" height="256"/>
  </tileset>
- <tileset firstgid="577" source="Tileset/background.tsx"/>
+ <tileset firstgid="577" source="Tileset/background_color.tsx"/>
  <layer id="9" name="background color" width="40" height="20">
   <data encoding="csv">
 577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,577,
