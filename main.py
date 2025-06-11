@@ -21,8 +21,9 @@ camera = Camera(screen.get_size(), (tilemap.width, tilemap.height))
 player = Player(player_x, player_y, tilemap.get_scale())
 #game_surface = pygame.Surface((camera.rect.width, camera.rect.height))
 
-#imposta il ciclo di esecuzionew
+#imposta il ciclo di esecuzione e lo stato del gioco
 running = True
+game_state = "intro"
 #imposta la chiusura dalla X della finestra
 while running:
     for event in pygame.event.get():
