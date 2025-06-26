@@ -34,7 +34,7 @@ class Player(Character) :
 
     #aggiorna la posizione del giocatore in base ai tasti premuti, verrà poi sostituita
     #con quello che deciderà la llm in base al prompt
-    def update(self, keys, colliders):
+    def update(self, keys, colliders, key_function=None):
         dx = dy = 0
         if keys[pygame.K_a] or keys[pygame.K_d] or keys[pygame.K_w] or keys[pygame.K_s]:
             self.state = "run"
@@ -44,10 +44,13 @@ class Player(Character) :
             if keys[pygame.K_d]:
                 dx += self.speed
                 self.facing_right = True
-            if keys[pygame.K_w]:
-                dy -= self.speed
-            if keys[pygame.K_s]:
-                dy += self.speed
+
+            #inseriamo momentaneamente come aggiunta tutto quello che viene dato dal LLM
+            if key_function:
+                for key_name, function in key_function.items():
+                    pygame_key = getattr(pygame, f"K_{key_name.lower()}", None)
+                    if pygame_key and keys[pygame_key]:
+                        function()
             #tiene conto delle collisioni
             self.rect = Collision.handle_collision(self.rect, dx, dy, colliders)
             self.visual_rect.center = (self.rect.centerx, self.rect.centery - COLLISION_OFFSET_Y)

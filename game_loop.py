@@ -3,9 +3,12 @@ from camera import Camera
 from player import Player
 from tilemap import TileMap
 from timer import Timer
+from gameLLMController import GameLLMController
 
 py.init()  # Initialize Pygame
 py.font.init()  # Initialize Pygame font module
+llm_controller = GameLLMController()  # inizializza il controller con nessun contesto
+
 
 class GameLoop:
     
@@ -68,6 +71,9 @@ class GameLoop:
 
     @staticmethod
     def game():
+        input_mode = False #definisce se il giocatore ha richiesto di interagire con il LLM per inserire un nuovo comando
+        user_input = "" #inseriremo qui dentro la richiesta dell'utente.
+        new_function_key = None #qua va inserito il tasto a cui l'utente decide di voler associare la nuova funzione
         door_timer = Timer(30) #timer per il cambio di mappa
         #carica la mappa iniziale
         tilemap = TileMap("./maps/Mappa_0.tmx")
@@ -76,6 +82,7 @@ class GameLoop:
         camera = Camera(GameLoop.screen.get_size(), (tilemap.width, tilemap.height))
         player = Player(player_x, player_y, tilemap.get_scale())
         #game_surface = pygame.Surface((camera.rect.width, camera.rect.height))
+        dt = GameLoop.clock.tick(60) / 1000.0  # Time in seconds
 
         #imposta il ciclo di esecuzione e lo stato del gioco
         running = True
@@ -86,15 +93,36 @@ class GameLoop:
                     running = False
                 if event.type == py.VIDEORESIZE:
                     GameLoop.screen = py.display.set_mode((event.w, event.h))
+                if event.type == py.KEYDOWN:
+                    if event.key == py.K_TAB:
+                        input_mode = not input_mode
+
         #controlla il cambio di area e il caricamento di una nuova mappa
+
+            if input_mode:
+                #prendiamo allora in ingresso dal terminale la richiesta dell'utente
+                user_input = input("Tell me child, how can I help you? \n")
+                if user_input.lower() == "exit":
+                    input_mode = False
+                else:
+                    print("Press the key you want to assign to this function")
+                    #attende che l'utente prema un tasto
+                    while not new_function_key:
+                        new_function_key = py.key.get_pressed()
+                    if new_function_key:
+                        llm_controller.controls_generation(user_input, new_function_key)
+                    input_mode = False
+
+
             if door_timer.ready():
                 tilemap, player = tilemap.load_next_map(player)
             #print("posizione del player: ", player.rect.center)
             #ottiene dalla mappa i rettangoli di collisione
             colliders = tilemap.get_colliders()
+            llm_controller.set_game_context(player, colliders, dt) #temporanemente consideriamo solo i colliders, successivamente dovremo inserire anche altri elementi di gioco quali bottoni e porte da aprire
             #aggiorna la posizione del giocatore e della telecamera
             keys = py.key.get_pressed()
-            player.update(keys, colliders)
+            player.update(keys, colliders, llm_controller.key_functions)
             camera.update(player.rect)
             #mostra a schermo la mappa e il giocatore
             tilemap.render(GameLoop.screen)
