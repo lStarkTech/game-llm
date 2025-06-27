@@ -51,6 +51,7 @@ class GameLLMController:
             game_objects = None #prenderà gli oggetti del gioco con cui il player può interagire
             dt = 0 #prenderà il delta time del gioco per poter calcolare le velocità e le accelerazioni
 
+
             #funzione che verrà richiamata nel main del gameloop
             def set_game_context(player_obj, game_objects_list, delta_time):
                 """Funzione per impostare il contesto del gioco, in modo che le funzioni
@@ -100,25 +101,88 @@ class GameLLMController:
         per questo esatto scopo. Per farlo però vi è bisogno di assicurarci che il prompt funzioni correttamente, sennò non porterebbe a nulla e sarebbe
         solo un casino ogni volta da modificare"""
         try:
-            prompt = PromptTemplate.from_template(f"""Generate a python function for a 2D platform videogame, using the pygame library, following
-            the request given by the user {user_input}.
-            The function needs to be called {key}.
-            The name of the function must be the name of the key as it is called in pygame.
-            To write the function you will already have the player object, and a list of game object
-            that you can interact with. 
-            Write the code of the function, without any other text.
-            The player object has the following attributes:
-            - player.rect: the rectangle of the player, used for collision detection.
-            - player.visual_rect: the rectangle of the player, used for drawing the player on the screen.
-            - player.state: the state of the player, can be "idle", "running", "jumping", "falling". 
-            For every function you will need to write the physics necessary to perform the action.
-            The physics used should be realistic.""")
+            prompt = PromptTemplate.from_template("""
+                        You are a code generator for a 2D platformer game built using Python and Pygame.
+                        Your task is to write a function that will be called when the player presses the key "{key}".
+                        The user has requested the following behavior: "{user_input}"
+
+                        ### CONTEXT
+
+                        You can access the following global variables:
+                        - player: the Player object
+                        - game_objects: a list of interactive objects (like colliders, ladders, doors, and buttons)
+                        - dt: the delta time (float), used to compute motion physics
+
+                        ### PLAYER OBJECT STRUCTURE
+
+                        The player object has the following attributes:
+                        - player.rect: pygame.Rect, for collisions and movement
+                        - player.visual_rect: pygame.Rect, used for rendering
+                        - player.state: string, must be either "idle" or "running"
+                        - player.facing_right: boolean, direction the player is facing
+                        - player.animations: dict[str, list[pygame.Surface]], animation frames for states
+                        - player.speed: float, movement speed
+                        - player.frame_index: int, current frame for animations
+                        - player.image: pygame.Surface, current sprite
+                        - player.last_update: int, timestamp for animation updates
+                        - player.is_jumping: True if the player is mid-air.
+                        - player.velocity_y: The current vertical speed.
+                        - player.gravity: Constant vertical acceleration.
+                        - player.jump_power: Initial negative impulse for jumping.
+                        - player.on_ground: True if touching ground.
+                        - player.is_falling: True if the player is falling.
+                        - player.is_attacking: True if the player is attacking.
+                        - player.attack_cooldown: int, time until next attack can occur.
+                        - player.is_interacting: True if the player is interacting with an object.
+                        - player.interact_range: int, range for interaction with objects.
+
+                        ### GAME OBJECT TYPES
+
+                        In the game_objects list, you may find:
+                        - Colliders (rectangles)
+                        - Doors (rectangles with associated destination map)
+                        - Ladders (rectangles for vertical movement)
+                        - Buttons or levers (rectangles you can activate)
+
+                        You can loop over game_objects and use `player.rect.colliderect(obj)` to detect interaction.
+
+                        ### PHYSICS AND RULES
+
+                        - Use `player.rect.x/y += dx/dy` for movement.
+                        - Use the function `collision.handle_collision(player.rect, dx, dy, game_objects)` to resolve collisions.
+                        - Use `dt` for time-based movement (e.g., dx = player.speed * dt)        
+                        - Do NOT assign or use any attribute not explicitly listed above.
+                        - Do NOT create new player states other than "idle" or "running".
+                        - Do NOT print or log any information.
+                        - Do NOT access external resources or use global imports.
+                                                  
+                        You must implement the full behavior in your function. 
+                        If the action (like jumping, flying, or falling) requires frame-by-frame evolution, you must implement a continuous behavior manually:
+
+                        - Use player.velocity_y and player.gravity to simulate jumping and falling.
+                        - Apply movement using player.rect.y += ...
+                        - Check for collision using collision.handle_collision(...)
+                        - Set flags like player.is_jumping to control animation or state
+                        - You are responsible for resetting these states when needed.
+
+                        You are NOT allowed to assume the game handles gravity or jumping on its own.
+
+
+                        ### OUTPUT FORMAT
+
+                        Write ONLY the function definition, named exactly: `{key}`
+                        The function must:
+                        - take no arguments
+                        - modify only allowed attributes or objects
+                        - execute cleanly when bound to a keypress
+                        """)
 
             chain = prompt | self.llm
         
             try:
                 response = chain.invoke({"user_input": user_input, "key": key})
-                function_code = response.content
+                function_code = response.content if hasattr(response, "content") else response
+                print(f"Generated code for {key}:\n{function_code}")
                 validated_code = self.validate_generated_code(function_code, key)
                 
                 if validated_code is None:

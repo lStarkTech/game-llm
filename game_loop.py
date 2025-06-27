@@ -95,7 +95,7 @@ class GameLoop:
                     GameLoop.screen = py.display.set_mode((event.w, event.h))
                 if event.type == py.KEYDOWN:
                     if event.key == py.K_TAB:
-                        input_mode = not input_mode
+                        input_mode = True
 
         #controlla il cambio di area e il caricamento di una nuova mappa
 
@@ -107,12 +107,20 @@ class GameLoop:
                 else:
                     print("Press the key you want to assign to this function")
                     #attende che l'utente prema un tasto
-                    while not new_function_key:
-                        new_function_key = py.key.get_pressed()
-                    if new_function_key:
-                        llm_controller.controls_generation(user_input, new_function_key)
-                    input_mode = False
-
+                    waiting_for_key = True
+                    while waiting_for_key:
+                        for event in py.event.get():
+                            if event.type == py.KEYDOWN:
+                                if event.key == py.K_ESCAPE:
+                                    waiting_for_key = False
+                                    input_mode = False
+                                else:
+                                    new_function_key = py.key.name(event.key)
+                                    print(f"Okay child. I will do what I can... (the key '{new_function_key}' will be assigned to the function)")
+                                    waiting_for_key = False
+                                    llm_controller.controls_generation(user_input, new_function_key)
+                                    input_mode = False
+                        py.time.delay(10) #delay per evitare che il loop sia troppo veloce
 
             if door_timer.ready():
                 tilemap, player = tilemap.load_next_map(player)
