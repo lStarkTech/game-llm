@@ -81,9 +81,11 @@ class GameLoop:
         player_x,player_y = tilemap.get_player_start(0,0)
         camera = Camera(GameLoop.screen.get_size(), (tilemap.width, tilemap.height))
         player = Player(player_x, player_y, tilemap.get_scale())
+        colliders = tilemap.get_colliders()
         #game_surface = pygame.Surface((camera.rect.width, camera.rect.height))
         dt = GameLoop.clock.tick(60) / 1000.0  # Time in seconds
-
+        llm_controller.set_game_context(player, colliders)
+        llm_controller.load_written_controls()
         #imposta il ciclo di esecuzione e lo stato del gioco
         running = True
         #imposta la chiusura dalla X della finestra
@@ -116,18 +118,32 @@ class GameLoop:
                                     input_mode = False
                                 else:
                                     new_function_key = py.key.name(event.key)
-                                    print(f"Okay child. I will do what I can... (the key '{new_function_key}' will be assigned to the function)")
-                                    waiting_for_key = False
-                                    llm_controller.controls_generation(user_input, new_function_key)
-                                    input_mode = False
+                                    if "K_"+new_function_key in llm_controller.key_functions:
+                                        print(f"Child, the key '{new_function_key}' is already assigned to a function. If you override it, the previous function will not work anymore. Do you still wish to proceed? \n")
+                                        confirm = input("Type 'yes' to confirm.\n")
+                                        if confirm.lower() != "yes":
+                                            print("Okay child, I will not assign the function to the key.")
+                                            waiting_for_key = False
+                                            input_mode = False
+                                            continue
+                                    if input_mode == True:
+                                        print(f"Okay child. I will do what I can... (the key '{new_function_key}' will be assigned to the function)")
+                                        waiting_for_key = False
+                                        llm_controller.controls_generation(user_input, new_function_key)
+                                        input_mode = False
+
                         py.time.delay(10) #delay per evitare che il loop sia troppo veloce
 
             if door_timer.ready():
+                old_tilemap = tilemap
                 tilemap, player = tilemap.load_next_map(player)
+                if tilemap is not old_tilemap:
+                    llm_controller.function_reload(player, tilemap.get_colliders)
             #print("posizione del player: ", player.rect.center)
             #ottiene dalla mappa i rettangoli di collisione
             colliders = tilemap.get_colliders()
-            llm_controller.set_game_context(player, colliders, dt) #temporanemente consideriamo solo i colliders, successivamente dovremo inserire anche altri elementi di gioco quali bottoni e porte da aprire
+            llm_controller.update_game_context(player, colliders) #temporanemente consideriamo solo i colliders, successivamente dovremo inserire anche altri elementi di gioco quali bottoni e porte da aprire
+
             #aggiorna la posizione del giocatore e della telecamera
             keys = py.key.get_pressed()
             player.update(keys, colliders, llm_controller.key_functions)

@@ -21,18 +21,20 @@ class Player(Character) :
             "running": self.load_animation(path ="./assets/player/player_run.png", scale=scale),
         }
         self.state = "idle"
-        self.speed = 2.5*scale
+        self.speed = 3*scale
+        self.dx = 0
         self.facing_right = True
         self.frame_index = 0
         self.image = self.animations[self.state][0]
 
         #variabili per fisica verticale
         self.gravity = 0.5 * scale  # Forza di gravità
-        self.jump_power = -10 * scale  # spinta iniziale per il salto
-        self.is_jumping = False
+        self.jump_power = -8 * scale  # spinta iniziale per il salto
+        #self.is_jumping = False
         self.velocity_y = 0
-        self.is_falling = False
+        #self.is_falling = False
         self.on_ground = True
+        #self.dy = 0
 
         #variabili per possibili interazione e attacchi
         self.is_attacking = False
@@ -49,42 +51,50 @@ class Player(Character) :
 
     #aggiorna la posizione del giocatore in base ai tasti premuti, verrà poi sostituita
     #con quello che deciderà la llm in base al prompt
-    def update(self, keys, colliders, key_functions=None):
-        dx = dy = 0
-        if keys[pygame.K_a] or keys[pygame.K_d]:
-            self.state = "running"
-            if keys[pygame.K_a]:
-                dx -= self.speed
-                self.facing_right = False
-            if keys[pygame.K_d]:
-                dx += self.speed
-                self.facing_right = True
-            self.rect = Collision.handle_collision(self.rect, dx, dy, colliders)
-            self.visual_rect.center = (self.rect.centerx, self.rect.centery - COLLISION_OFFSET_Y)
+    def update(self, keys, colliders,key_functions=None):
+        self.dx = 0
+        self.dy = 0
+        #if keys[pygame.K_a] or keys[pygame.K_d]:
+        #    self.state = "running"
+        #    if keys[pygame.K_a]:
+        #        dx -= self.speed*dt
+        #        self.facing_right = False
+        #    if keys[pygame.K_d]:
+        #        dx += self.speed*dt
+        #        self.facing_right = True
+
 
 
             #inseriamo momentaneamente come aggiunta tutto quello che viene dato dal LLM
-        elif key_functions and isinstance(key_functions, dict):
-            for key_name, function in key_functions.items():
-                if len(key_name) == 1:
-                    pygame_key = getattr(pygame, f"K_{key_name}", None)
-                else:
-                        pygame_key = getattr(pygame, f"K_{key_name.upper()}", None)
-                if pygame_key and keys[pygame_key]:
-                    function()
-            #tiene conto delle collisioni
-            self.rect = Collision.handle_collision(self.rect, dx, dy, colliders)
-            self.visual_rect.center = (self.rect.centerx, self.rect.centery - COLLISION_OFFSET_Y)
+        if key_functions and isinstance(key_functions, dict):
+            for key_code in range(len(keys)):
+                if keys[key_code]:
+                    key_name = "K_"+pygame.key.name(key_code)
+                    if key_name in key_functions:
+                        key_functions[key_name]()
+            if self.dx == 0:
+                self.state = "idle"
+                
 
+        """
+        self.visual_rect.x += self.dx
+    
         
+            #viene applicata la gravità
+        if not self.on_ground:
+            self.rect.y += self.velocity_y
+            self.visual_rect.y += self.velocity_y
+            self.velocity_y += self.gravity
+            self.dy = self.gravity
+            Collision.handle_collision(self, colliders)
+            #tiene conto delle collisioni
+    
+        Collision.handle_collision(self, colliders)
+        """
+        self.visual_rect.center = (self.rect.centerx, self.rect.centery - COLLISION_OFFSET_Y)
 
         #controlla di aggiornare le animazioni di idle e run
-        else:
-            self.state = "idle"
-        
-        if hasattr(self, "velocity_y"):
-            dy += self.velocity_y
-    
+
         now = pygame.time.get_ticks()
         if now - self.last_update > ANIM_DELAY:
             self.frame_index = (self.frame_index + 1) % len(self.animations[self.state])
